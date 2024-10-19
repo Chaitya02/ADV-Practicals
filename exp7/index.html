@@ -1,1 +1,360 @@
+<!-- complete_visualizations.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Visualizations</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        .bar {
+            fill: steelblue;
+        }
+        .bar:hover {
+            fill: orange;
+        }
+        .arc {
+            stroke: #fff;
+        }
+        .scatter {
+            fill: teal;
+        }
+        .bubble {
+            fill: lightblue;
+            opacity: 0.7;
+        }
+        .axis--x path,
+        .axis--y path {
+            display: none;
+        }
+        .box {
+            fill: lightgray;
+            stroke: black;
+        }
+    </style>
+</head>
+<body>
+    <h2>Bar Chart: Investment Avenues</h2>
+    <svg id="barChart" width="600" height="400"></svg>
 
+    <h2>Pie Chart: Gender Distribution</h2>
+    <svg id="pieChart" width="400" height="400"></svg>
+
+    <h2>Histogram: Age Distribution</h2>
+    <svg id="histogram" width="600" height="400"></svg>
+
+    <h2>Scatter Plot: Age vs Investment</h2>
+    <svg id="scatterPlot" width="600" height="400"></svg>
+
+    <h2>Bubble Plot: Investment vs Duration</h2>
+    <svg id="bubblePlot" width="600" height="400"></svg>
+
+    <h2>Box and Whisker Plot: Investment Amounts</h2>
+    <svg id="boxPlot" width="600" height="400"></svg>
+
+    <h2>Line Chart: Investment Over Time</h2>
+    <svg id="lineChart" width="600" height="400"></svg>
+
+    <script>
+        // Sample data
+        const barData = [
+            { Investment_Avenues: "Mutual Fund", count: 10 },
+            { Investment_Avenues: "Equity", count: 15 },
+            { Investment_Avenues: "Fixed Deposits", count: 5 },
+            { Investment_Avenues: "Government Bonds", count: 8 },
+            { Investment_Avenues: "Debentures", count: 6 }
+        ];
+
+        const pieData = [
+            { gender: "Female", count: 25 },
+            { gender: "Male", count: 20 }
+        ];
+
+        const ageData = [22, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80];
+        const scatterData = [
+            { age: 25, investment: 1000 },
+            { age: 30, investment: 1500 },
+            { age: 35, investment: 2000 },
+            { age: 40, investment: 2500 },
+            { age: 45, investment: 3000 },
+            { age: 50, investment: 3500 }
+        ];
+
+        const bubbleData = [
+            { investment: 1000, duration: 1, risk: 5 },
+            { investment: 1500, duration: 2, risk: 10 },
+            { investment: 2000, duration: 3, risk: 15 },
+            { investment: 2500, duration: 4, risk: 20 },
+            { investment: 3000, duration: 5, risk: 25 }
+        ];
+
+        const boxData = [
+            { category: "A", values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+            { category: "B", values: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11] },
+            { category: "C", values: [3, 4, 5, 6, 7, 8, 9, 10, 11, 12] }
+        ];
+
+        const lineData = [
+            { date: new Date(2020, 0, 1), investment: 1000 },
+            { date: new Date(2020, 1, 1), investment: 1500 },
+            { date: new Date(2020, 2, 1), investment: 2000 },
+            { date: new Date(2020, 3, 1), investment: 2500 },
+            { date: new Date(2020, 4, 1), investment: 3000 },
+            { date: new Date(2020, 5, 1), investment: 3500 }
+        ];
+
+        // Bar Chart
+        const barSvg = d3.select("#barChart"),
+            barMargin = { top: 20, right: 30, bottom: 40, left: 40 },
+            barWidth = +barSvg.attr("width") - barMargin.left - barMargin.right,
+            barHeight = +barSvg.attr("height") - barMargin.top - barMargin.bottom;
+
+        const barX = d3.scaleBand()
+            .domain(barData.map(d => d.Investment_Avenues))
+            .range([0, barWidth])
+            .padding(0.1);
+
+        const barY = d3.scaleLinear()
+            .domain([0, d3.max(barData, d => d.count)])
+            .nice()
+            .range([barHeight, 0]);
+
+        const barG = barSvg.append("g")
+            .attr("transform", `translate(${barMargin.left},${barMargin.top})`);
+
+        barG.append("g")
+            .selectAll(".bar")
+            .data(barData)
+            .enter().append("rect")
+            .attr("class", "bar")
+            .attr("x", d => barX(d.Investment_Avenues))
+            .attr("y", d => barY(d.count))
+            .attr("width", barX.bandwidth())
+            .attr("height", d => barHeight - barY(d.count));
+
+        barG.append("g")
+            .attr("class", "axis axis--x")
+            .attr("transform", `translate(0,${barHeight})`)
+            .call(d3.axisBottom(barX));
+
+        barG.append("g")
+            .attr("class", "axis axis--y")
+            .call(d3.axisLeft(barY));
+
+        // Pie Chart
+        const pieWidth = 400, pieHeight = 400, pieRadius = Math.min(pieWidth, pieHeight) / 2;
+
+        const pieColor = d3.scaleOrdinal(d3.schemeCategory10);
+
+        const pie = d3.pie()
+            .value(d => d.count);
+
+        const pieArc = d3.arc()
+            .innerRadius(0)
+            .outerRadius(pieRadius - 10);
+
+        const pieSvg = d3.select("#pieChart")
+            .attr("viewBox", `0 0 ${pieWidth} ${pieHeight}`)
+            .append("g")
+            .attr("transform", `translate(${pieWidth / 2},${pieHeight / 2})`);
+
+        const pieG = pieSvg.selectAll(".arc")
+            .data(pie(pieData))
+            .enter().append("g")
+            .attr("class", "arc");
+
+        pieG.append("path")
+            .attr("d", pieArc)
+            .style("fill", d => pieColor(d.data.gender));
+
+        pieG.append("text")
+            .attr("transform", d => `translate(${pieArc.centroid(d)})`)
+            .attr("dy", ".35em")
+            .text(d => d.data.gender);
+
+        // Histogram
+        const histogramSvg = d3.select("#histogram"),
+            histMargin = { top: 20, right: 30, bottom: 40, left: 40 },
+            histWidth = +histogramSvg.attr("width") - histMargin.left - histMargin.right,
+            histHeight = +histogramSvg.attr("height") - histMargin.top - histMargin.bottom;
+
+        const histX = d3.scaleLinear()
+            .domain([0, d3.max(ageData)])
+            .range([0, histWidth]);
+
+        const histY = d3.scaleLinear()
+            .range([histHeight, 0]);
+
+        const histogram = d3.histogram()
+            .value(d => d)
+            .domain(histX.domain())
+            .thresholds(histX.ticks(10));
+
+        const bins = histogram(ageData);
+
+        histY.domain([0, d3.max(bins, d => d.length)]);
+
+        const histG = histogramSvg.append("g")
+            .attr("transform", `translate(${histMargin.left},${histMargin.top})`);
+
+        histG.selectAll(".bar")
+            .data(bins)
+            .enter().append("rect")
+            .attr("class", "bar")
+            .attr("x", 1)
+            .attr("transform", d => `translate(${histX(d.x0)},${histY(d.length)})`)
+            .attr("width", d => histX(d.x1) - histX(d.x0) - 1)
+            .attr("height", d => histHeight - histY(d.length));
+
+        histG.append("g")
+            .attr("class", "axis axis--x")
+            .attr("transform", `translate(0,${histHeight})`)
+            .call(d3.axisBottom(histX));
+
+        histG.append("g")
+            .attr("class", "axis axis--y")
+            .call(d3.axisLeft(histY));
+
+        // Scatter Plot
+        const scatterSvg = d3.select("#scatterPlot"),
+            scatterMargin = { top: 20, right: 30, bottom: 40, left: 40 },
+            scatterWidth = +scatterSvg.attr("width") - scatterMargin.left - scatterMargin.right,
+            scatterHeight = +scatterSvg.attr("height") - scatterMargin.top - scatterMargin.bottom;
+
+        const scatterX = d3.scaleLinear()
+            .domain([20, 60])
+            .range([0, scatterWidth]);
+
+        const scatterY = d3.scaleLinear()
+            .domain([0, d3.max(scatterData, d => d.investment)])
+            .range([scatterHeight, 0]);
+
+        const scatterG = scatterSvg.append("g")
+            .attr("transform", `translate(${scatterMargin.left},${scatterMargin.top})`);
+
+        scatterG.selectAll(".dot")
+            .data(scatterData)
+            .enter().append("circle")
+            .attr("class", "scatter")
+            .attr("cx", d => scatterX(d.age))
+            .attr("cy", d => scatterY(d.investment))
+            .attr("r", 5);
+
+        scatterG.append("g")
+            .attr("class", "axis axis--x")
+            .attr("transform", `translate(0,${scatterHeight})`)
+            .call(d3.axisBottom(scatterX).ticks(5));
+
+        scatterG.append("g")
+            .attr("class", "axis axis--y")
+            .call(d3.axisLeft(scatterY));
+
+        // Bubble Plot
+        const bubbleSvg = d3.select("#bubblePlot"),
+            bubbleMargin = { top: 20, right: 30, bottom: 40, left: 40 },
+            bubbleWidth = +bubbleSvg.attr("width") - bubbleMargin.left - bubbleMargin.right,
+            bubbleHeight = +bubbleSvg.attr("height") - bubbleMargin.top - bubbleMargin.bottom;
+
+        const bubbleX = d3.scaleLinear()
+            .domain([0, d3.max(bubbleData, d => d.duration)])
+            .range([0, bubbleWidth]);
+
+        const bubbleY = d3.scaleLinear()
+            .domain([0, d3.max(bubbleData, d => d.investment)])
+            .range([bubbleHeight, 0]);
+
+        const bubbleG = bubbleSvg.append("g")
+            .attr("transform", `translate(${bubbleMargin.left},${bubbleMargin.top})`);
+
+        bubbleG.selectAll(".bubble")
+            .data(bubbleData)
+            .enter().append("circle")
+            .attr("class", "bubble")
+            .attr("cx", d => bubbleX(d.duration))
+            .attr("cy", d => bubbleY(d.investment))
+            .attr("r", d => d.risk);
+
+        bubbleG.append("g")
+            .attr("class", "axis axis--x")
+            .attr("transform", `translate(0,${bubbleHeight})`)
+            .call(d3.axisBottom(bubbleX).ticks(5));
+
+        bubbleG.append("g")
+            .attr("class", "axis axis--y")
+            .call(d3.axisLeft(bubbleY));
+
+        // Box and Whisker Plot
+        const boxSvg = d3.select("#boxPlot"),
+            boxMargin = { top: 20, right: 30, bottom: 40, left: 40 },
+            boxWidth = +boxSvg.attr("width") - boxMargin.left - boxMargin.right,
+            boxHeight = +boxSvg.attr("height") - boxMargin.top - boxMargin.bottom;
+
+        const boxX = d3.scaleBand()
+            .domain(boxData.map(d => d.category))
+            .range([0, boxWidth])
+            .padding(0.1);
+
+        const boxY = d3.scaleLinear()
+            .domain([0, d3.max(boxData, d => d3.max(d.values))])
+            .range([boxHeight, 0]);
+
+        const boxG = boxSvg.append("g")
+            .attr("transform", `translate(${boxMargin.left},${boxMargin.top})`);
+
+        boxG.selectAll(".box")
+            .data(boxData)
+            .enter().append("rect")
+            .attr("class", "box")
+            .attr("x", d => boxX(d.category))
+            .attr("y", d => boxY(d3.quantile(d.values, 0.75)))
+            .attr("width", boxX.bandwidth())
+            .attr("height", d => boxY(d3.quantile(d.values, 0.25)) - boxY(d3.quantile(d.values, 0.75)));
+
+        boxG.append("g")
+            .attr("class", "axis axis--x")
+            .attr("transform", `translate(0,${boxHeight})`)
+            .call(d3.axisBottom(boxX));
+
+        boxG.append("g")
+            .attr("class", "axis axis--y")
+            .call(d3.axisLeft(boxY));
+
+        // Line Chart
+        const lineSvg = d3.select("#lineChart"),
+            lineMargin = { top: 20, right: 30, bottom: 40, left: 40 },
+            lineWidth = +lineSvg.attr("width") - lineMargin.left - lineMargin.right,
+            lineHeight = +lineSvg.attr("height") - lineMargin.top - lineMargin.bottom;
+
+        const lineX = d3.scaleTime()
+            .domain(d3.extent(lineData, d => d.date))
+            .range([0, lineWidth]);
+
+        const lineY = d3.scaleLinear()
+            .domain([0, d3.max(lineData, d => d.investment)])
+            .range([lineHeight, 0]);
+
+        const lineG = lineSvg.append("g")
+            .attr("transform", `translate(${lineMargin.left},${lineMargin.top})`);
+
+        const line = d3.line()
+            .x(d => lineX(d.date))
+            .y(d => lineY(d.investment));
+
+        lineG.append("path")
+            .datum(lineData)
+            .attr("fill", "none")
+            .attr("stroke", "steelblue")
+            .attr("stroke-width", 1.5)
+            .attr("d", line);
+
+        lineG.append("g")
+            .attr("class", "axis axis--x")
+            .attr("transform", `translate(0,${lineHeight})`)
+            .call(d3.axisBottom(lineX));
+
+        lineG.append("g")
+            .attr("class", "axis axis--y")
+            .call(d3.axisLeft(lineY));
+    </script>
+</body>
+</html>
